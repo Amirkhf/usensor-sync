@@ -1,11 +1,18 @@
 #include <stdio.h>
+#include <inttypes.h>
 #include "usensor.h"
 
 int main(void)
 {
     uint8_t header[HEADER_SIZE];
     uint8_t record[RECORD_SIZE];
-
+    t_ring  camera_ring = {0};
+    t_ring  imu_ring = {0};
+    t_ring  gps_ring = {0};
+    t_record pending[MAX_PENDING];
+    size_t pending_count  = 0;
+    uint64_t max_ts = 0;
+    
     int status = read_exact(0, header, HEADER_SIZE);
     if (status != READ_OK)
     {
@@ -30,15 +37,57 @@ int main(void)
          }
         else if (status == READ_TRUNCATED)
         {
-            fprintf(stderr, "error: truncated header\n");
+            fprintf(stderr, "error: truncated record\n");
             return(1);
         }   
         else if (status == READ_EOF)
             break;
         if (!parse_record(record, &rec))
             continue;
-            
+        if (rec.timestamp > max_ts)
+            max_ts = rec.timestamp;
+       if (rec.sensor_id == 1) // camera
+            ring_push(&rec,&camera_ring);
+       else if (rec.sensor_id == 2) // imu
+            ring_push(&rec,&imu_ring);
+       else if (rec.sensor_id == 3) // gps 
+            ring_push(&rec,&gps_ring);
+       else if (rec.sensor_id == 5) // button
+       {
+            if (rec.x == 1)
+            {
+                if (pending_count < MAX_PENDING)
+                {
+                    pending[pending_count] = rec;
+                    pending_count++;
+                }
+                else
+                    fprintf(stderr, "warning: too many pending button presses, dropped\n");
+            }
+       }
+       size_t i = 0;
+       while (i < pending_count)
+       {
+            if (max_ts > pending[i].timestamp + FINALIZE_DELAY_NS)
+            {
+                printf("button seq=%" PRIu32 " ts=%" PRIu64 "\n",
+                    pending[i].seq, pending[i].timestamp);
+                for (size_t j = i; j + 1 < pending_count; j++)
+                    pending[j] = pending[j + 1];
+                pending_count--;
+            }
+            else
+                i++;
+       }
+       
     }
-    
+    size_t i = 0;
+    while (i < pending_count)
+    {
+        printf("button seq=%" PRIu32 " ts=%" PRIu64 "\n",
+            pending[i].seq, pending[i].timestamp);
+        i++;
+    }
+    pending_count = 0;
     return (0);
 }
