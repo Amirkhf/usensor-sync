@@ -2,6 +2,7 @@
 
 
 
+// checksum fnv-1a 32 bits. utilise pour l'en-tete et pour chaque record.
 uint32_t    fnv1a(const uint8_t *data, size_t len)
 {
     uint32_t hash = 0x811C9DC5;

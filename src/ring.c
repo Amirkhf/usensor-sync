@@ -1,5 +1,6 @@
 #include "usensor.h"
 
+// ajoute un echantillon au buffer circulaire. quand il est plein on ecrase le plus ancien.
 void ring_push(const t_record *rec, t_ring *ring)
 {
     ring->data[ring->head] = *rec;

@@ -2,6 +2,9 @@
 #include <inttypes.h>
 #include "usensor.h"
 
+// verifie l'en-tete puis lit les records un par un.
+// un bouton est ecrit en json 102 ms apres son timestamp.
+// les boutons restants sont ecrits a la fin du flux.
 int main(void)
 {
     uint8_t header[HEADER_SIZE];
@@ -12,7 +15,7 @@ int main(void)
     t_record pending[MAX_PENDING];
     size_t pending_count  = 0;
     uint64_t max_ts = 0;
-    
+
     int status = read_exact(0, header, HEADER_SIZE);
     if (status != READ_OK)
     {
@@ -39,7 +42,7 @@ int main(void)
         {
             fprintf(stderr, "error: truncated record\n");
             return(1);
-        }   
+        }
         else if (status == READ_EOF)
             break;
         if (!parse_record(record, &rec))
@@ -50,7 +53,7 @@ int main(void)
             ring_push(&rec,&camera_ring);
        else if (rec.sensor_id == 2) // imu
             ring_push(&rec,&imu_ring);
-       else if (rec.sensor_id == 3) // gps 
+       else if (rec.sensor_id == 3) // gps
             ring_push(&rec,&gps_ring);
        else if (rec.sensor_id == 5) // button
        {
@@ -78,7 +81,7 @@ int main(void)
             else
                 i++;
        }
-       
+
     }
     size_t i = 0;
     while (i < pending_count)

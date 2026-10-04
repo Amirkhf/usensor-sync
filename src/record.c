@@ -1,5 +1,6 @@
 #include "usensor.h"
 
+// transforme 32 octets bruts en t_record. renvoie false si le record est invalide.
 bool parse_record(const uint8_t *raw, t_record *rec)
 {
     if (u32_from_le_bytes(raw + 28) != fnv1a(raw, 28))

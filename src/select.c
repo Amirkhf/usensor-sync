@@ -7,6 +7,7 @@ static uint64_t ts_distance(uint64_t a, uint64_t b)
     return (b - a);
 }
 
+// true si a est avant b. on compare le timestamp puis le seq si egalite.
 static bool is_earlier(const t_record *a, const t_record *b)
 {
     if (a->timestamp != b->timestamp)
@@ -14,6 +15,7 @@ static bool is_earlier(const t_record *a, const t_record *b)
     return (a->seq < b->seq);
 }
 
+// photo la plus proche du bouton a 50 ms max. null si aucune.
 t_record *select_camera(t_ring *camera, uint64_t button_ts)
 {
     t_record *best = NULL;
@@ -42,6 +44,7 @@ bool imu_is_usable(const t_record *rec)
     return (rec->x >= 0 && rec->x <= YAW_MAX_CD);
 }
 
+// imu utilisable la plus proche du bouton a 20 ms max. null si aucune.
 t_record *select_imu(t_ring *imu, uint64_t button_ts)
 {
     t_record *best = NULL;
@@ -68,6 +71,7 @@ t_record *select_imu(t_ring *imu, uint64_t button_ts)
     return (best);
 }
 
+// dernier gps avant le bouton vieux d'1 s max. null si aucun.
 t_record *select_gps(t_ring *gps, uint64_t button_ts)
 {
     t_record *best = NULL;
@@ -99,6 +103,7 @@ static void insert_sorted(t_record *out, size_t count, const t_record *sample)
     out[pos] = *sample;
 }
 
+// recupere les imu utilisables a ±100 ms du bouton triees par temps.
 size_t collect_imu_window(t_ring *imu, uint64_t button_ts,
     t_record *out, size_t max)
 {

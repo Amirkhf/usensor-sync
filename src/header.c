@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "usensor.h"
 
+// verifie que l'en-tete commence par "usens001".
 bool has_good_signature(const uint8_t *buf)
 {
    const char good_signature[9] = "USENS001";
@@ -15,6 +16,7 @@ bool has_good_signature(const uint8_t *buf)
 }
 
 
+// verifie l'en-tete : signature taille de record version et checksum.
 bool validate_header(const uint8_t *header)
 {
     if (!has_good_signature(header))
