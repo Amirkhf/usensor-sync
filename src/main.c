@@ -70,8 +70,7 @@ int main(void)
        {
             if (max_ts > pending[i].timestamp + FINALIZE_DELAY_NS)
             {
-                printf("button seq=%" PRIu32 " ts=%" PRIu64 "\n",
-                    pending[i].seq, pending[i].timestamp);
+                emit_event(&pending[i], &camera_ring, &imu_ring, &gps_ring);
                 for (size_t j = i; j + 1 < pending_count; j++)
                     pending[j] = pending[j + 1];
                 pending_count--;
@@ -84,8 +83,7 @@ int main(void)
     size_t i = 0;
     while (i < pending_count)
     {
-        printf("button seq=%" PRIu32 " ts=%" PRIu64 "\n",
-            pending[i].seq, pending[i].timestamp);
+        emit_event(&pending[i], &camera_ring, &imu_ring, &gps_ring);
         i++;
     }
     pending_count = 0;
